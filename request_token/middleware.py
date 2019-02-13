@@ -1,8 +1,8 @@
 import logging
+import json
 
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.template import loader
-
 from jwt.exceptions import InvalidTokenError
 
 from .models import RequestToken
@@ -52,13 +52,18 @@ class RequestTokenMiddleware:
             "authentication middleware is installed."
         )
 
-        token = request.GET.get(JWT_QUERYSTRING_ARG)
+        if request.method == 'GET' or request.method == 'POST':
+            token = request.GET.get(JWT_QUERYSTRING_ARG)
+            if not token and request.method == 'POST':
+                if request.META.get('CONTENT_TYPE') == 'application/json':
+                    token = json.loads(request.body).get(JWT_QUERYSTRING_ARG)
+                if not token:
+                    token = request.POST.get(JWT_QUERYSTRING_ARG)
+        else:
+            token = None
 
         if token is None:
             return self.get_response(request)
-
-        if request.method != 'GET':
-            return HttpResponseNotAllowed(['GET'])
 
         # in the event of an error we log it, but then let the request
         # continue - as the fact that the token cannot be decoded, or
@@ -79,19 +84,22 @@ class RequestTokenMiddleware:
         """Handle all InvalidTokenErrors."""
         if isinstance(exception, InvalidTokenError):
             logger.exception("JWT request token error")
-            response = _403(exception)
+            response = _403(request, exception)
             if getattr(request, 'token', None):
                 request.token.log(request, response, error=exception)
             return response
 
 
-def _403(exception):
+def _403(request, exception):
     """Render HttpResponseForbidden for exception."""
     if FOUR03_TEMPLATE:
         html = loader.render_to_string(
-            FOUR03_TEMPLATE,
-            context={'token_error': str(exception)}
+            template_name=FOUR03_TEMPLATE,
+            context={
+                'token_error': str(exception),
+                'exception': exception
+            },
+            request=request
         )
         return HttpResponseForbidden(html, reason=str(exception))
-    else:
-        return HttpResponseForbidden(reason=str(exception))
+    return HttpResponseForbidden(reason=str(exception))

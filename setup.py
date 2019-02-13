@@ -1,6 +1,7 @@
-# -*- coding: utf-8 -*-
 import os
 from setuptools import setup, find_packages
+
+import request_token
 
 README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 
@@ -9,13 +10,13 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name="django-request-token",
-    version="0.8",
-    packages=find_packages(),
+    version=request_token.__version__,
+    packages=find_packages(exclude=('tests',)),
     install_requires=[
         'Django>=1.11',
         'PyJWT>=1.4',
         'sqlparse>=0.2',
-        'psycopg2>=2.7',
+        'psycopg2-binary>=2.7'
         'jsonfield>=2.0.2'
     ],
     include_package_data=True,
@@ -32,6 +33,7 @@ setup(
         'Framework :: Django',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',

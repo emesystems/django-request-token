@@ -12,16 +12,16 @@ from django.http import HttpResponse
 from django.test import TestCase, RequestFactory
 from django.utils.timezone import now as tz_now
 
-from ..exceptions import MaxUseError
-from ..models import (
+from request_token.exceptions import MaxUseError
+from request_token.models import (
     parse_xff,
     RequestToken,
     RequestTokenErrorLog,
     RequestTokenErrorLogQuerySet,
     RequestTokenLog,
 )
-from ..settings import JWT_SESSION_TOKEN_EXPIRY
-from ..utils import to_seconds, decode
+from request_token.settings import JWT_SESSION_TOKEN_EXPIRY
+from request_token.utils import to_seconds, decode
 
 
 class RequestTokenTests(TestCase):
@@ -330,6 +330,17 @@ class RequestTokenTests(TestCase):
 
         request.user = get_user_model().objects.create_user(username="Hyde")
         self.assertRaises(InvalidAudienceError, token.authenticate, request)
+
+    def test_expire(self):
+        expiry = tz_now() + datetime.timedelta(days=1)
+        token = RequestToken.objects.create_token(
+            scope="foo",
+            login_mode=RequestToken.LOGIN_MODE_NONE,
+            expiration_time=expiry
+        )
+        self.assertTrue(token.expiration_time == expiry)
+        token.expire()
+        self.assertTrue(token.expiration_time < expiry)
 
     def test_parse_xff(self):
 

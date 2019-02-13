@@ -1,6 +1,3 @@
-"""request_token models."""
-from __future__ import unicode_literals
-
 import datetime
 import logging
 
@@ -8,9 +5,7 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timezone import now as tz_now
-
 from jsonfield import JSONField
 from jwt.exceptions import InvalidAudienceError
 
@@ -30,7 +25,6 @@ class RequestTokenQuerySet(models.query.QuerySet):
         return RequestToken(scope=scope, **kwargs).save()
 
 
-@python_2_unicode_compatible
 class RequestToken(models.Model):
 
     """A link token, targeted for use by a known Django User.
@@ -103,7 +97,7 @@ class RequestToken(models.Model):
     data = JSONField(
         help_text="Custom data add to the token, but not encoded (must be fetched from DB).",
         blank=True, null=True,
-        default=dict()
+        default=dict
     )
     issued_at = models.DateTimeField(
         blank=True, null=True,
@@ -328,6 +322,11 @@ class RequestToken(models.Model):
         self.save()
         return log
 
+    def expire(self):
+        """Mark the token as expired immediately, effectively killing the token."""
+        self.expiration_time = tz_now() - datetime.timedelta(microseconds=1)
+        self.save()
+
 
 def parse_xff(header_value):
     """
@@ -348,7 +347,6 @@ def parse_xff(header_value):
         return None
 
 
-@python_2_unicode_compatible
 class RequestTokenLog(models.Model):
 
     """Used to log the use of a RequestToken."""
@@ -417,7 +415,6 @@ class RequestTokenErrorLogQuerySet(models.query.QuerySet):
         )
 
 
-@python_2_unicode_compatible
 class RequestTokenErrorLog(models.Model):
 
     """Used to log errors that occur with the use of a RequestToken."""
