@@ -23,5 +23,5 @@ def request_token_querystring(context):
 	"""Render a query-string with the request token if it exists."""
 	request = context.get('request')
 	if getattr(request, 'token', None):
-		return f'?{JWT_QUERYSTRING_ARG}={request.token.jwt()}'
+		return '?%s=%s' % (JWT_QUERYSTRING_ARG, request.token.jwt())
 	return ""
