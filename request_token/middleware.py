@@ -56,7 +56,7 @@ class RequestTokenMiddleware:
             token = request.GET.get(JWT_QUERYSTRING_ARG)
             if not token and request.method == 'POST':
                 if request.META.get('CONTENT_TYPE') == 'application/json':
-                    token = json.loads(request.body).get(JWT_QUERYSTRING_ARG)
+                    token = json.loads(request.body.decode('utf-8')).get(JWT_QUERYSTRING_ARG)
                 if not token:
                     token = request.POST.get(JWT_QUERYSTRING_ARG)
         else:
