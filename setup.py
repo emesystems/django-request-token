@@ -16,7 +16,7 @@ setup(
         'Django>=1.11',
         'PyJWT>=1.4',
         'sqlparse>=0.2',
-        'psycopg2-binary>=2.7'
+        'psycopg2-binary>=2.7',
         'jsonfield>=2.0.2'
     ],
     include_package_data=True,
